@@ -1,0 +1,157 @@
+shegnbte是用来计算热导率的一款软件，其运行需要POSCAR文件
+第一步：准备POSCAR，INCAR，KPOINTS，POTCAR，vasp.sub文件
+第二步：运行以下命令
+    module load thirdorder
+          第一次输入可能会报错,需要再输入一次才会正常运行
+第三步：运行以下命令
+    thirdorder_vasp.py sow|reap na nb nc cutoff[nm/-integer]
+        eg:thirdorder_vasp.py sow 2 2 1 0.35
+        参数解释：
+            第一个参数必须是"sow"或"reap"，并选择要执行的操作（位移生成或 IFC 矩阵重建）。
+            接下来的三个必须是正整数，并指定要创建的超级单元的维度。
+            最后，"截止"参数决定了力的截止距离。间隔超过此参数的原子之间的相互作用被忽略。
+            如果截止值是正实数，则将其解释为以 nm 为单位的距离;
+            另一方面，如果它是负整数 -n，则会自动确定超级单元中第 n 个相邻邻域之间的最大距离，并相应地设置截止距离。
+    成功后运行以下命令:
+        thirdorder_vasp.py sow 2 2 1 -4
+    准备group.bash脚本：
+        #!/bin/bash
+
+        #make direatory
+
+        for ((i=1;i<=9;i++))
+        do
+        mkdir DISP.POSCAR.00$i
+        cp 3RD.POSCAR.0$i DISP.POSCAR.00$i/POSCAR
+        cp vasp.sub KPOINTS POTCAR INCAR DISP.POSCAR.00$i/
+        done
+
+        for ((i=10;i<=60;i++))
+        do
+        mkdir DISP.POSCAR.0$i
+        cp 3RD.POSCAR.$i DISP.POSCAR.0$i/POSCAR 
+        cp vasp.sub KPOINTS POTCAR INCAR DISP.POSCAR.0$i/
+        done
+    再运行一下命令:
+        sbatch group.bash
+    生成文件夹并复制文件后，准备run3rd.sh脚本：
+        #!/bin/sh
+        #root_path='pwd'
+
+        #在每个文件夹里进行静态计算。
+        for i in {001..060} #按顺序从001到116做静态vasp计算,根据生成的文件夹设定
+        do
+        cd DISP.POSCAR.$i
+        sbatch vasp.sub
+        wait
+        cd ..
+        done
+
+        #上述静态计算完成后提取三阶力常数文件
+        #cd ${root_path}
+        
+    再运行以下命令：
+        sbatch run3rd.sh
+
+    等待计算完成后（约3-6小时），运行以下命令：
+        find DISP.POSCAR.* -name vasprun.xml|sort -n| thirdorder_vasp.py reap 2 2 1 -4
+    之后会得到FORCE_CONSTANTS_3RD 文件
+
+    准备二阶力常数文件
+        将用静态计算法或DFT法计算得到的二阶力常数文件FORCE_CONSTANTS改名为FORCE_CONSTANTS_2ND，
+        注意两个尾缀不同
+
+    准备文件POSCAR和CONTROL
+        POSCAR文件是未扩胞前的文件，CONTROL文件如下：
+            &allocations
+                    nelements=1,
+                    natoms=2,
+                    ngrid(:)=15 15 1,
+                    norientations=0
+            &end
+            &crystal
+                    lfactor=1,
+                    lattvec(:,1)=4.9376327974467662    0.0000000000000000    0.0000000000000000,
+                    lattvec(:,2)=-2.4688163987233831    4.2761154371481229    0.0000000000000000,
+                    lattvec(:,3)=0.0000000000000000    0.0000000000000000   20.0000000000000000,
+                    elements="C"
+                    types=1 1,
+                    positions(:,1)=0.6666666666666666  0.3333333333333333  0.5000000000000000,
+                    positions(:,2)=0.3333333333333334  0.6666666666666667  0.5000000000000000,
+                    scell(:)=2 2 1
+                
+            &end
+            &parameters
+                    T=300.
+                    scalebroad=0.5
+            &end
+            &flags
+                    nonanalytic=.FALSE.
+                    nanowires=.FALSE.
+            &end
+        一般其参数意义如下：
+            &allocations 名单：
+                nelements （整数，强制）：化合物中不同元素的数量
+                natoms （整数，强制）：晶胞中的原子数，是未扩胞的POSCAR文件中的数字
+                ngrid （整数，3，强制）：倒数空间中沿每个轴的网格平面数，在KPOINTS文件中可以找到
+                norientations （整数，默认值 = 0）：研究纳米线的方向数
+            
+            &crystal 名单：
+                lfactor (real, nm, default=1.0): 晶格向量的测量单位，一般写0.1
+                lattvec （实数，3 x 3，强制）：实空间格向量，单位为 lfactor，在POSCAR文件中可找到
+                types(integer, natoms, 强制)：natom整数向量，范围从 1 到nelements，为系统中的每个原子分配一个元素，有几个原子要写几个数字
+                elements（字符串，，nelements强制）：元素名称的向量，要加双引号
+                positions（实数，3 x natoms，强制）：晶格坐标中的原子位置
+                masses(real, nelements, g/mol, default=automatic)：每个元素对应的原子质量。如果它们被省略并且autoisotopes为真并且元素名称已知，则它们将被自动计算。
+                gfactors(real, nelements, default=automatic)：与每个元素相关的同位素散射的 g 因子。如果它们被省略并且autoisotopes为真并且元素名称已知，则它们将被自动计算。
+                epsilon(real, 3 x 3, Ε 0 , default=1): 笛卡尔基系统的介电张量
+                born(real, 3 x 3 x natoms, e, default=0): 笛卡尔基中每个原子的有效电荷张量
+                scell （整数，3，强制）：用于二阶力常数计算的沿每个晶轴的超晶胞尺寸
+                orientations（整数，3 x norientations，强制，除非norientations==0）：整数索引的术语，定义了研究纳米线的晶体学方向
+                
+                epsilon(:,1)=4.5 0.00 0.00,
+                epsilon(:,2)=0.00 4.5 0.00,
+                epsilon(:,3)=0.00 0.00 4.5,
+                born(:,1,1)=2.67810 0.00 0.00,
+                born(:,2,1)=0.00 2.67810 0.00,
+                born(:,3,1)=0.00 0.00 2.67810,
+                born(:,1,2)=-2.67558 0.00 0.00,
+                born(:,2,2)=0.00 -2.67558 0.00,
+                born(:,3,2)=0.00 0.00 -2.67558,
+
+
+                orientations(:,1)=1 0 0,
+                orientations(:,2)=1 1 0,
+                orientations(:,3)=1 1 1
+            
+            &parameters 名单：
+                T (real, K)：单次温度计算时使用的温度
+                T_min, T_max, T_step(real, K)：用于多重温度计算的最低温度、最高温度和增量。如果存在，则 T 优先。
+                omega_max (real, rad/ps, default=1.e100)：为有限目的计算非谐散射特性的最大角频率。
+                scalebroad(real, default=1.0): 高斯拖尾的尺度参数。默认值理论上可以保证工作，但有时可以通过减少它来实现显着的加速，而精度损失可以忽略不计。
+                rmin (real, nm, default=5.0): 将计算其热导率的纳米线的最小半径
+                rmax (real, nm, default=505.0): 将计算其热导率的纳米线的最大半径
+                dr（真实的，纳米，默认= 100.0）：半径增量从模拟纳米线时，可以使用rmin至rmax
+                maxiter (integer, default=1000): BTE收敛过程中允许的最大迭代次数
+                nticks （整数，默认值 = 100）：计算累积热导率的平均自由程的不同值的数量
+                eps(real, default=10 -5 )：当热导张量的相对变化小于 时，BTE 的迭代求解器将停止eps。步骤 n-1 和 n 之间的这种变化被测量为 ||Κ n -Κ n-1 ||，其中 ||⋅|| 表示矩阵 2-范数。
+            
+            &flags 名单：
+                nonanalytic (logical, default=.true.): 计算和使用动态矩阵的非解析部分
+                convergence（逻辑，默认=.true。）：如果为真，则迭代 BTE 求解器直到实现收敛。如果为假，则在弛豫时间近似中计算热导率。
+                isotopes （逻辑，默认=.true。）：在弛豫时间内包括同位素散射
+                autoisotopes (logical, default=.true.): 自动计算原子质量和 g 因子
+                nanowires （逻辑，默认=.false。）：研究纳米线的热导率以及块体的热导率
+                onlyharmonic (logical, default=.false.): 计算比热和小晶粒热导率后停止程序
+                espresso(logical, default=.false.): 从espresso.ifc2（Quantum Espresso 格式）而不是默认FORCE_CONSTANTS_2ND（Phonopy 格式）读取二阶力常数
+
+
+
+
+    #提交计算任务应该后台运行，不能在前台运行，也就是说不能运行以下命令
+    #    先运行以下命令:
+    #        module load ShengBTE    
+    #    再运行以下命令 
+    #       ShengBTE
+    应该提交此命令
+        qsub shengbte.pbs

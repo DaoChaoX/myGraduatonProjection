@@ -1,0 +1,25 @@
+INCAR的设置
+    System = AgCrS2-StructureOptimization
+    ISTART = 0
+    ICHARG = 2
+    PREC   = Accurate
+    LREAL  = .FALSE. #projection done in reciprocal space计算在倒数空间完成
+    IBRION = 2       #CG algorithm to relax the ions. CG 演算以松弛离子
+    NSW    = 300     #the maximum number of ionic steps 粒子松弛的最大步数
+    ISIF   = 3       #fix the lattice, only optimize the atomic posotions 固定晶格，只优化离子位置
+    ISMEAR = 0       
+    SIGMA  = 0.05
+    ENCUT  = 400
+    EDIFF  = 1.0E-8  #break condition for the eletronic SC-loop 电子循环跳出条件
+    EDIFFG = -1.0E-4 #break condition for ionic relaxation of all forces 栗子松弛跳出条件
+    POTIM  = 0.5
+    NPAR   = 4
+    NELM   = 60
+    LCHARG = .F.
+    LWAVE  = .F.
+
+一般修改ENCUT, ISIF, NSW, IBRION
+
+优化完成后执行以下命令检查是否优化成功
+    grep accu OUTCAR
+    若出现reached required accuracy stopping structural energy minimisation则说明达到收敛标准

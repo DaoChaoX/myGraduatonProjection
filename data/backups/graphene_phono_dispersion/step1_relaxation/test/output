@@ -1,0 +1,4 @@
+Loaded VASP 5.4.4-avx512 and also VASPKIT
+To use VASPKIT, you will need a .vaspkit file in your HOME directory.
+If you don't have one, run the following line:
+  cp /opt/ohpc/pub/apps/vasp544-avx512/vaspkit.1.2.4/how_to_set_environment_variable ~/.vaspkit

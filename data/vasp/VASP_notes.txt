@@ -1,0 +1,331 @@
+DFPT计算声子谱
+    文件准备：包括INCAR POSCAR KPOINTS POTCAR vasp.sub
+        INCAR:
+            ISTART =  0           
+            ICHARG =  2
+            ISMEAR =  0            
+            ENCUT  =  500        
+            SIGMA  =  0.05        
+            IBRION =  8            
+            NSW    =  1          
+            IALGO  =  38
+            EDIFF  =  1E-07        
+            PREC   =  Accurate       
+            LREAL  = .FALSE.
+            ADDGRID= .TRUE.        
+            LCHARG = .FALSE.        
+            LWAVE  = .FALSE.       
+            NELM   =  100 
+
+    ************从POSCAR开始*********************        
+    自己准备POSCAR后
+    首先寻找最佳对称性（第一种方法）
+        phonopy --symmetry
+        将POSCAR改名为POSCAR-unsymmetry
+        将生成的PPOSCAR文件改名为POSCAR
+        
+        寻找对称性的第二种方法
+            vaspkit
+            6
+            602
+            将POSCAR改名为POSCAR-vaspkit
+            将PRIMCELL.vasp改名为POSCAR
+            
+    利用vaspkit生成POTCAR
+        vaspkit
+        103
+    自己建立KPOINTS文件
+    建立初始结构POSCAR
+        phonopy -d --dim="m n l" ：生产m*n*l的超胞
+    将phonopy创建的SPOSCAR复制到POSCAR中，运行VASP进行DFPT计算
+        mv POSCAR POSCAR-unitcell：将原始单胞重命名保留
+        mv SPOSCAR POSCAR：将超胞重命名为POSCAR用来VASP计算
+    
+    课题组任务提交脚本命令
+        sbatch vasp.sub
+
+    实时查看计算过程的信息
+        tail -f OUTCAR
+        退出实时页面：Ctrl + c
+
+    查看是否计算完成
+        grep hessian vasprun.xml 
+
+    后处理
+        phonopy --fc vasprun.xml ：生成力常数文件(此处可能会出错，可能是由于任务未运行完成导致)
+    
+
+    获取BAND和BAND_LABELS参数：
+        vaspkit：打开vaspkit软件
+        304：运行304命令
+        结果：产生KPATH.phonopy文件
+                格式如下：
+                    NPOINTS = 501
+                    DIM =       
+                    BAND = 0.000000 0.000000 0.000000 0.500000 0.000000 0.000000 0.333333 0.333333 0.000000 0.000000 0.000000 0.000000
+                    BAND_LABELS = $\Gamma$ M K $\Gamma$
+
+                    MP = 30 30 30
+                    TETRAHEDRON = .TRUE.
+                    PDOS = 1 2
+                    BAND_CONNECTION = .TRUE.
+                    FORCE_CONSTANTS = READ
+
+                    # FORCE_SETS = READ
+                    # IRREPS = 0  0  0
+                    # SHOW_IRREPS = .TRUE.
+                    # LITTLE_COGROUP = .TRUE.
+        操作：用此文件里的BAND和BAND_LABELS两行代替band.conf文件中的相应参数
+            注意：需要去除$
+
+    配置band.conf文件
+        格式如下：
+            ATOM_NAME = graphene
+            EIGENVECTORS = .TRUE.
+            DIM = 2 2 1     PS:如果扩胞是mnl则此处应为mnl
+            FORCE_CONSTANTS = READ
+            BAND = 0 0 0 0.5 0 0 1/3 1/3 0 0 0 0
+            BAND_CONNECTION = .TRUE.
+            BAND_POINTS = 200
+            BAND_LABELS = \Gamma M K \Gamma
+        解释：。。。
+
+    尝试生成band.yaml文件
+        phonopy --dim="m n l" -c POSCAR-unitcell band.conf 
+    
+    如果直接运行plot命令可能会报错，需顺序运行以下命令：
+        conda activate phonopy1.13
+        phonopy-bandplot --gnuplot band.yaml > band.dat
+    注意事项：phonopy-bandplot之间没有空格
+    绘图：
+        在WIN10的Origin中打开band.dat文件并绘制相应的图，
+        纵坐标单位是THz 1THz=33.33cm^-1，高对称点的横坐标在band.dat文件的第三行里
+    退出phonony1.13环境，切换回原来的环境
+        conda info -e 查看系统中已经安装的环境
+        conda activate [name] 切换到name环境下，name为原来的环境
+
+-----------------------------------------------------------------------------------------------
+POSCAR文件
+
+
+Si-fcc                    #注释行，一般描述输入的体系
+5.43                     #缩放系数，可以认为是晶格常数
+0.00 0.50 0.50           #3到4行晶体的正格子基量除以晶格常数
+0.50 0.00 0.50
+0.50 0.50 0.00
+2                        #原胞内的原子数目
+Direct／Carti            #表示原子位置用分数坐标（fractional coordinate）／笛卡尔坐标表示
+0.00 0.00 0.00           #8，9行为原子位置
+0.25 0.25 0.25 
+
+--------------------------------------------------------------------------------------------------
+KPOINTS文件
+
+Automatic mesh              #注释行
+0                           #自动产生k点
+Gamma                       #以 gamma点为中心，根据Monhkorst-Pack方法产生k点
+1  1  1                     #在各个基矢方向上分割基矢的个数。
+0. 0. 0.                    #是否移动网格，这里不移动
+
+--------------------------------------------------------------------------------------------------
+POTCAR
+在准备好POSCAR文件后运行以下命令会根据POSCAR文件生成POTCAR文件
+    vaspkit
+然后输入
+    103
+    就可以生成POTCAR文件了
+
+
+
+---------------------------------------------------------------------------------------------
+基本输入文件的准备
+    所有文件都没有后缀
+    常用输入文件：INCAR KPOINTS PSCAR POTCAR
+    基本输入输出文件：
+        INCAR      in    **
+        STOPCAR    in
+        stout      out
+        POTCAR     in     **
+        KPOINTS    in     **
+        IBZKPT     out
+        POSCAR     in     **
+        CONTCAR    out
+        CHGCAR     in/out
+        CHG        out
+        WAVECAR    in/out
+        TMPCAR     in/out
+        EIGENVAL   out
+        DOSCAR     out
+        PROCAR     out
+        OSZICAR    out
+        PCDAT      out
+        XDATCAR    out
+        LOCPOT     out
+        ELFCAR     out
+        PROOUT     out
+    INCAR：告诉VASP算什么，怎么算
+        准备原则：越简单越好，不知道的，不理解的就不往里面放。
+        eg: 
+            SYSTEM = O atom       # 氧元素符号，不是零!
+            ISMEAR = 0            # 是零，不是氧元素符号，对于分子或者原子，用0.
+            SIGMA = 0.01          # 对于分子或者原子，用0.01 
+
+        注意事项：
+            **#**后面写的是汉语，是给大家展示用的，大家在写的时候，最好不要把汉语写进去，有可能会出错！
+            **#**号后面的内容对计算不会造成影响，可以不用输入；
+            每个参数后面跟着等号 = ，
+            等号（**=**）前后可以有空格，也可以没有。ISMEAR=0 和 ISMEAR = 0 是一样的，
+            写INCAR的时候，不要使用 tab，用空格替换tab；
+            官网有些旧的文件可能用的不是 # 号，而是 !。 大家记住: ! 可能会出错。
+        参数意义：
+            SYSTEM：
+                填写计算的相关信息，一般要包含计算的目的和对象
+            ISMEAR：
+                不同的值对应不同的展宽方法，对于分子原子的计算用的是0
+                官网的相关解释：
+                    对于半导体和绝缘体体系，ISMEAR的值取绝对不能大于0， 一般用0；
+                    对所有体系，如果想获取更加精确能量的时候用-5：但使用-5的时候，K点数目小于3则程序会罢工；
+                    K 点少，半导体或者绝缘体，那么只能用 ISMEAR = 0；
+                    在DOS能带计算中，使用ISMEAR= -5 用于获取精确的信息。
+                    对于金属来说，ISMEAR的取值一般为0，1；
+                    保守地说，ISMEAR = 0 (Gaussian Smearing) 可以满足大部分的体系（金属，导体，半导体，分子）；
+                    如果不知道怎么取ISMEAR，1）直接用0；2）测试不同的值对计算的影响。
+            SIGMA：
+                SIGMA的取值和ISMEAR息息相关
+                ，也就是和ISMEAR这个参数同时出现，设定。
+                如果用了ISMEAR = -5； SIGMA的值可以忽略，也可以不管。（对于所有体系都适用)；
+                对于金属： ISMEAR = 1 或者0，
+                    非金属: ISMEAR= 0 的时候，一般取 SIGMA = 0.10 即可，默认值是0.20。
+                    不放心的话，用0.05。
+                对于气体分子，原子体系（也就是你把分子或者原子放到一个box里面）：
+                    死死记住下面组合就可以了， ISMEAR = 0; SIGMA = 0.01。
+                不过很多人都不放心，为了保险想测试一番。
+                    标准是： SIGMA的取值要保证OUTCAR 中的 entropy T*S 这一项，
+                    平均到每个原子上，要小于 1-2 meV。检查的时候可以用这个命令:
+                        grep 'entropy T'  OUTCAR 
+                    用这个命令，得出的能量除以体系中原子的数目（也就是平均到每个原子上），然后再和 0.001 eV 比较。
+                        如果小于，SIGMA取值OK，如果大于，再换个小点的数值进行测试。
+        INCAR的保存：INCAR.txt是错误的，不能带有后缀
+        总结：
+            INCAR是纯文本没有尾缀;
+            算原子或者分子时：ISMEAR = 0， SIGMA = 0.01
+
+    KPOINTS：包含计算的K点信息(K点是什么，这个问题很抽象，脑子里先记住，计算的时候必须有这个东西)。
+        一方面决定了计算的精度，同时也影响计算所需要的时间。精度高，时间长，精度低，时间短。所以：合理设置KPOINTS文件，可以保证我们使用最少的时间，来获取准确可靠的结果。
+        eg：
+            K-POINTS      #  第一行随便写都行，但不能没有
+            0             # 零，格子自动生成
+            Gamma         #  gamma点centered 
+            1 1 1         #  1*1*1格子
+            0 0 0         #  S1 S2 S3， 一般保持 0 0 0 不变。
+            详解:
+                该KPOINTS 文件里面，共有5行，#号以及后面的不用输入；
+                同INCAR的注释一样，不要在每一行后面使用 ! 来进行注释，要使用 #，且最好不要写中文。
+                第一行：可以随便写内容，但不能没有;
+                第二行：数字0，不是字母O，0 在这里表示的是自动生成K点。
+                    你可能注意到了，0前面有个空格，不过没关系，对计算不影响，可以删掉，也可以再加一个空格，后面的同样如此。 
+                    但是避免用tab输入，VASP有时候不识别tab键输入的空白部分，导致计算出错；
+                第三行：VASP只认第一个字母，大小写均可。在这里Gamma和gamma，Gorge，gorge效果是一样的，
+                    当然这一行也可以直接写字母G或者g。G表示的是以gamma点为中心生成网格。
+                    另外一种是原始的Monkhorst-Pack 网格，两者的区别是 M 或者 m 在 G的基础上在三个方向上平移了1/（2N）个单位。
+                    G，也叫 gamma centered Monkhorst-Pack Grid；所以，gamma centered 只是MP网格的一种特殊情况。
+                第四行，在xyz三个方向上生成对应数目的K点，本例是111;
+                    对于原子或者分子的计算，K点取一个gamma点就够了（1 1 1），也就是这个KPOINTS文件可以用于绝大多数的原子或者分子计算，不用再修改；
+                    但如果你要用ISMEAR = -5 来计算能量，那么就需要把 1 1 1 改成 2 2 2或者3 3 3。
+                第五行，一般都写成 0 0 0 ，不用动即可；
+        保存：
+            按照前面INCAR的方式保存文件，名字为KPOINTS。       
+        建议：
+            K点在VASP计算中非常重要，
+            一直用gamma centered，也就是第三行保持G不变。因为M平移之后，网格的对称性和晶胞的对称性会出现不匹配的情况，
+                从而导致计算出错，尤其是对于六角晶系hexagonal的结构，必须用gamma centered!这一点，vasp官网说的很明确；其他的建议后续慢慢展开讨论。
+            如非六角晶系的计算，如果已经设置的M算起来了，继续用M算就行，没必要改成G再重新算一遍；
+            前面看不懂，没事。记住这一点，本节就圆满完成任务：气体分子，原子计算的时候，使用gamma点即可。
+
+    POSCAR是计算模型结构的文字描述，也就是各个原子在xyz方向的坐标信息。
+        包含了你要进行计算的模型结构信息。也就是你要研究的对象。POSCAR有自己固定的格式，每一行都有特定的含义
+        eg:
+            O atom in a box 
+            1.0             # universal scaling parameters 
+            8.0 0.0 0.0     # lattice vector a(1) 
+            0.0 8.0 0.0     # lattice vector a(2)  
+            0.0 0.0 8.0     # lattice vector a(3)  
+            O               # O element， not zero
+            1               # number of atoms 
+            Cartesian       # positions in cartesian coordinates 
+            0 0 0           #
+            详解：
+                第一行：同样随便写，但不能不写；
+                第二行：Scale factor，称为缩放系数，这里是1.0；
+                第三到五行：是组成格子的三条边的坐标信息；从原点出发，在xyz轴上分别取8。这个很容易理解；
+                第六行：体系中的元素，这里我们算的是氧原子，所以写：O，即氧的元素符号。需要注意的有以下几点：
+                    vasp4.xx版本里面没有这一行，不过现在几乎没人用4.X的版本了；
+                    O的符号和数字0容易混淆，一定要注意；
+                    第一个元素符号要顶格写，前面不要有空格，有可能会出错；
+                    如果计算文件夹里面，已经有与结构相一致的POTCAR，那么POSCAR里面即使删了这一行有不会影响计算，VASP会读取POTCAR中的元素信息，但输出文件CONTCAR中会把该行自动加上。（新手跳过）
+                第七行：与第六行中元素相对应的原子数目，这里我们只有1个氧原子，所以写成1；
+                第八行：体系中原子的坐标系，可以为笛卡尔坐标，也可以为分数坐标系。注意的有以下几点：
+                    这一行同KPOINTS的第三行一样，即只认第一个字母；
+                    C或者c代表笛卡尔坐标， D或者d代表分数坐标系；
+                    VASP输出文件CONTCAR里面采用的是分数坐标系。
+                第九行：体系中原子的坐标信息。这里我们把O原子放到了原点（0.0 0.0 0.0）的位置，大家也可以随便放一个位置，比如：（4.0 5.0 6.0），（1.1 2.5 6.5）都是可以的。由于周期性的存在，不管你怎么放，相邻两个格子之间氧原子的距离都是一样的。
+        保存：
+            写完之后，和INCAR，KPOINTS文件一样，直接保存成POSCAR即可。
+        总结：
+            第二行中的Scale factor还可以写成其他的数字，例如：写成2.0，则后面的格子以及原子坐标相关的数值都要除以2。一般来说，写成1.0即可，这样比较直观，清晰;
+            笛卡尔和分数坐标系的区别是从原子的坐标行开始的（这个例子里面是第8行），即坐标前面的都保持完全一致。
+                也就是说，如果想从笛卡尔转换成分数坐标，我们只需将Cartesian改成Direct，然后修改后面的原子坐标，而Cartesian行前面的部分保持不变。
+
+
+    POTCAR对应的是计算过程中每个原子的平面波基组，描述体系中对应的原子核和电子的相关信息。是赝势文件
+        赝势：是指在对能带结构进行数值计算时所引入的一个虚拟的势。
+        eg:
+            PAW_PBE Fe 06Sep2000
+            8.00000000000000000
+            parameters from PSCTR are:
+            VRHFIN =Fe:  d7 s1
+            LEXCH  = PE
+            EATOM  =   594.4687 eV,   43.6922 Ry
+
+            TITEL  = PAW_PBE Fe 06Sep2000
+            LULTRA =        F    use ultrasoft PP ?
+            IUNSCR =        1    unscreen: 0-lin 1-nonlin 2-no
+            RPACOR =    2.000    partial core radius
+            POMASS =   55.847; ZVAL   =    8.000    mass and valenz
+            RCORE  =    2.300    outmost cutoff radius
+            RWIGS  =    2.460; RWIGS  =    1.302    wigner-seitz radius (au A)
+            ENMAX  =  267.883; ENMIN  =  200.912 eV
+            RCLOC  =    1.701    cutoff for local pot
+            LCOR   =        T    correct aug charges
+            LPAW   =        T    paw PP
+            EAUG   =  511.368
+            DEXC   =    -.022
+            RMAX   =    2.817    core radius for proj-oper
+            RAUG   =    1.300    factor for augmentation sphere
+            RDEP   =    2.442    radius for radial grids
+            QCUT   =   -4.437; QGAM   =    8.874    optimization parameters
+            详解：
+                VRHFIN， LEXCH，TITEL，ZVAL，ENMAX是用到最多的几个参数。
+                VRHFIN 用来看元素的价电子排布，如果你元素周期表倒背如流，可以忽略这个参数；
+                LEXCH 表示这个POTCAR对应的是GGA-PBE泛函；如果INCAR中不设定泛函，则默认通过这个参数来设定。
+                TITEL 就不用说了，指的是哪个元素，以及POTCAR发布的时间；
+                ZVAL 指的是实际上POTCAR中价电子的数目，尤其是做Bader电荷分析的时候，极其重要。
+                ENMAX 代表默认的截断能。与INCAR中的ENCUT这个参数相关。
+        总结：一般无特殊需求，采用官网的配置文件即可
+        组合：
+            我们在计算的时候，根据体系中的元素，将这些元素的POTCAR结合起来，组成一个新的POTCAR，
+            这个结合的步骤，我们需要用到Linux的另一个命令：cat。比如VASP官网的例子，体系中含有Al， C，H三种元素。
+                cat ~/pot/Al/POTCAR ~/pot/C/POTCAR ~/pot/H/POTCAR >POTCAR
+            通过这一行命令就可以把Al，C，H各自的POTCAR结合在一起。OUTCAR中的元素顺序一定要和POSCAR保持一致,否则计算会出错
+            POTCAR检查常用的Linux命令：
+                查看POTCAR中的元素:
+                    grep  TIT POTCAR
+                查看POTCAR的截断能:
+                    grep  ENMAX POTCAR
+                查看POTCAR中元素的价电子数目：
+                    grep  ZVAL POTCAR
+            用grep这个命令提取出来Linux文件中所需要的信息
+
+
+
+

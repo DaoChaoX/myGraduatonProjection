@@ -1,0 +1,29 @@
+name: AgCrS2
+spacegroup: R3m #(空间群)
+formation energy: -0.808 #(结合能)
+E Above Hull(eV): 0 #由热力学第二定律可知，相对于组分来说，平均自由能是一个凸包(convex hull)，
+                    #坐落在convex hull线上的点对应稳定相，而落在convex hull线以上的点则不稳定，
+                    #对于非稳定相，定义其距离convex hull线的垂直高度为energy above hull，即Ehull，
+                    #该数值越大，则说明该相越不稳定。一般认为Ehull小于100 meV/atom属于亚稳定，而Ehull大于该阈值则认为不稳定。
+Band Gap(eV): 0.757
+Volume: 147.908
+Nsites: 8
+Density(gm/cc):5.029
+
+name: AgCrS2
+spacegroup: R3m
+formation energy: -0.68
+E Above Hull(eV): 0.128
+Band Gap(eV): 0
+Volume: 71.709
+Nsites: 4
+Density(gm/cc):5.187
+
+name: AgCrS2
+spacegroup: R3m
+formation energy: -0.612
+E Above Hull(eV): 0.195
+Band Gap(eV): 0
+Volume: 73.16
+Nsites: 4
+Density(gm/cc):5.084

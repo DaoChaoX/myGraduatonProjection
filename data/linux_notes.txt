@@ -1,0 +1,262 @@
+Linux的分支
+    redhat:CentOS 主要在服务器上使用 服务收费，产品免费 有开源社区 
+    
+    debian:Ubuntu 带有视窗界面的民用版本 完全免费
+
+
+本教程主要以redhat的CentOS
+
+基本常用
+    命令必须和参数用空格隔开，命令会区分大小写
+    help [。。。] 查看某个命令
+    man [。。。] 查看某个命令的说明
+    date 查看日期时间
+    cal 查看日历
+    uname -a 查看Linux信息
+
+    startx 启动窗口图形模式
+    clear 清除窗口
+
+    Ctrl C 终止当前命令
+
+    ip addr 查看IP
+
+    type [。。。] 查看命令或文件类型
+    file [。。。] 查看文件类型
+    who 查看服务器在线账户
+    whoami 查看当前账户名称
+    pwd 查看指针位置
+    echo 。。。 在屏幕上输出。。。
+    history 查看历史命令
+    ll 列出当前目录文件
+    ll -a 纵向列出当前目录文件的隐藏
+    ls 横向显示当前目录文件名
+    ps -ef 查看当前进程
+
+    squeue 查看集群上的作业任务
+    squeue -u 'jiale' 查看集群上名为jiale的用户的作业任务
+    qstat 查看过去几小时内已经结束及现在正在运行的作业任务
+    sbatch [] 提交脚本为[]的作业任务任务
+    qdel [num] 终止运行JOBID为num的属于自己的集群作业任务
+
+    sacct 用于报告有关活动或已完成的作业或作业步骤会计信息
+    sinfo 查看集群节点及分区
+        partition是分区，带有*表示是作业提交的默认分区
+        avail是分区的状态，up表示上线，down表示下线
+        timelimit是使用时间限制
+        nodes是分区的节点数，
+        state是状态，mix表示节点部分核心可以使用，alloc表示已被占用，idel表示空闲
+
+    scancel 用于取消正在运行或挂起的作业或作业步骤，或向与正在运行的作业或作业作业步骤相关联的所有进程发送任意信号
+    scancel -u 'name' 取消用户名为name的所有作业任务
+    scancel -t PENDING -u 'name' 取消用户名为name的所有挂起状态的作业任务
+
+    conda info -e 查看系统中已经安装的环境
+    conda activate [name] 切换到name环境下
+
+    module help 显示帮助信息
+    module avail 显示已经安装的软件环境
+    module load [] 导入相应的软件环境
+    module unload [] 删除相应的软件环境
+    module list 列出已经导入的软件环境，安装不一定导入
+
+    
+
+
+指针
+    cd [。。。] 把指针指向。。。
+    cd .. 指针指向上一级目录
+    cd ../[] 指针指向上一级目录下的某个文件
+    cd ./[] 指针指向 当前目录
+    cd /[] 指针指向 根目录下的某个文件夹
+    cd ~跳转到自己的根目录
+文件夹创建
+    mkdir [。。。] 在当前目录创建名字为。。。的文件夹
+    mkdir -p [。。。]/[。。。]]/[。。。] 创建多级目录文件
+    mkdir -p books{math,chinese,phy,etc} 当前目录创建以books开头的多个文件夹
+    mkdir -p books/{math,chinese,phy,etc} 当前目录创建books文件，books文件内创建多个文件
+    touch [] 创建文件或使得文件的Access Modify Change时间一致
+文件夹删除
+    rm -rf [。。。] 强制删除当前目录内的。。。文件夹
+    rm -rf /* 强制删除根目录内的所有文件夹
+    rm -f [。。。] 强制删除当前目录内的。。。文件
+    rm -r [。。。] 删除当前目录内的。。。文件夹
+    rmdir  [。。。] 删除空的文件夹的。。。
+文件复制
+    cp [。。。] ./[。。。。] 复制当前目录的。。。文件到当前目录的。。。。文件夹
+文件移动及重命名
+    mv [。。。] ./[。。。。] 剪切当前目录的。。。文件到当前目录的。。。。文件夹
+    mv [。。。] [。。。。] 把。。。文件名改为。。。。
+查看文件及其信息
+    stat [] 显示当前文件夹下的某文件信息
+    cat [] 正序显示某文件的全部内容
+    tac [] 倒序显示某文件的全部内容
+    more [] 正序一行行显示文件内的内容，每按下一次回车就多显示一行，back键就往回显示，空格是一页页的翻，H键展示提示信息
+    less [] 正序一行行显示文件内的内容，每按下一次回车就多显示一行，back键就往回显示，空格是一页页的翻，H键展示提示信息
+    head [NUM] [NAME] 显示NAME文件的前NUM行
+    tail [NUM] [NAME] 显示NAME文件的后NUM行
+    head [NUM] [NAME] | tail -1 显示NAME文件的第NUM行
+快捷方式
+    ln -s [NAME] [NAME1] 创建一个名为NAME1的NAME的快捷方式，因原文件的删除而失效
+    ln [NAME] [NAME1] 创建一个名为NAME1的NAME的地址映射，其存在不应原文件的删除而删除，且编辑该文件以达到编辑原文件的目的。
+文件查找
+    find / name [NAME] 在整个文件夹内查找NAME文件
+文件编辑
+    vi [NAME] 打开文档NAME
+    vi +[NUM] [NAME] 打开文档NAME的第NUM行
+    vi + [NAME] 打开文档NAME的最后一行
+    vi +/[NAM] [NAME] 定位到NAME文档的NAM关键字处
+
+    vi编辑器的几种模式：
+        初始进入的是编辑模式，此时无法输入信息，
+        只有快捷键有用，每一个按键都有其特定的作用
+            dd 删除一行
+            [NUM] dd 删除NUM行
+            u 撤销操作
+            . 回退操作
+
+            yy 复制一行
+            [NUM] yy 复制NUM行
+            y w 复制一个单词
+            [NUM] y w 复制NUM个单词
+
+            pp 粘贴一行或已经复制的内容
+            [NUM] p 粘贴已复制内容NUM次
+            100p 复制100行
+
+            i 进入输入模式
+            I 光标移动到行首并进入输入模式
+            a 进入输入模式，并直接在光标后面+1处进行输出
+            A 光标移动到行尾，并进入输入模式
+            o 光标移动到下一行，并进入输入模式
+            O 光标移动到上一行，并进入输入模式
+
+            [NUM] gg 光标定位到第NUM行
+            G 定位到最后一行
+            w 光标一个词一个词地移动到下一个单词前
+            d w 删除后面紧邻的一个单词
+            [NUM] d w 删除后面紧邻的连续的NUM个单词
+
+            h 光标向左
+            j 光标向下
+            k 光标向上
+            l 光标向右
+
+            ^ 光标移动到行首
+            $ 光标移动到行尾
+            [PageUp] 移动到页首 
+            [PageDown] 移动到页尾
+            
+            r [?] 将光标处的字母替换成?
+            [NUM] r [?] 将光标处及其以后共计NUM的字母替换成?
+
+            x 剪切
+            [NUM] x 剪切NUM个字母
+
+
+            ZZ 保存并退出
+            Ctrl s 锁屏
+            Ctrl q 解锁
+
+        输入模式 在编辑模式下按下i键后进入，退出是按下esc键
+            在此模式下可以直接编辑文档的内容，按下什么，文本输出什么
+
+        末行（命令行）模式：通过输入[:]进入，按esc键退出
+            :w 保存
+            :q 退出
+            :wq 保存并退出
+            :q! 强制退出
+
+            :set nu 显示行数
+            :/[text] 查找text内容并定位光标
+            :s/[text1]/[text2]/ 在当前行查找第一个text1并修改为text2
+            :s/[text1]/[text2]/g 在当前行查找全部text1并全部修改为text2
+            :[num1],[num2]s/[text1]/[text2]/g 在[num1][num2]行查找全部text1并全部修改为text2
+            :g/[text1]/s//[text2]/g 在全文查找全部text1并全部修改为text2
+            
+        PS:如果未保存文档就直接断开连接，则Linux会保存副本 .[file_name]，每次打开后都会有提示，可以通过rm -rf命令删除隐藏文档
+
+未安装Xftp软件下的文件传输
+    yum install lrzsz -y 在Linux上安装软件
+    rz 将文件从Windows上传到Linux上
+    sz [NAM] 将文档NAM从Linux上下载到Windows上
+
+
+文件属性信息查看
+    df 查看分区的信息
+    df -h 查看分区信息，占用空间大小单位为MB
+    du -h --max-depth=[NUM] [LCT] 查看路径为LCT下的各个文件的NUM级分区大小
+
+文件的压缩与解压缩
+    针对文件类型：lucky.tar.gz
+        tar -zxvf [NAM] 解压缩NAM文件，zx是解压，v是过程，f是文件
+        tar -zcf [NAME].tar.gz [NAM] 压缩文件NAM为NAME压缩文件
+    针对文件类型为zip
+        安装软件：yum install zip unzip -yum
+        zip -r [NAME].zip [NAM] 压缩NAM文件为NAME压缩文件
+        unzip [NAM] 解压缩文件NAM
+
+网络连接检测。。。。。。
+
+权限
+    -rw-r--r-- 1 jiale jiale 5705 Jan  6 17:16 linux_notes.txt
+    drwxrwxr-x 4 jiale jiale    5 Jan  6 16:45 note
+    drwxrwxr-x 2 jiale jiale    2 Jan  5 19:16 rcs_ALM
+    drwxrwxr-x 2 jiale jiale    2 Jan  5 19:16 rsc_VASP
+
+    开头一串的字符代表权限信息，其中首字母单独表示一种信息，后面每三个代表一个信息
+    第一个字符
+        -代表文档
+        d代表文件夹
+        l代表链接，或快捷方式
+    第2到4个字符代表文件所有者的权限
+        rwx分别代表读，写，执行
+    第5到第7个字符代表文件所属组用户的权限
+        rwx分别代表读，写，执行权限都有
+        r-x代表无写的权限
+        rw-代表无执行的权限
+    第8到10个字符代表其他用户的权限
+
+    drwxrwxr-x 2 jiale jiale2 代表jiale拥有文件所有者的权限，jiale2拥有文件所属组用户的权限
+
+进程
+    ps -ef 查看当前进程
+        UID：所属用户
+        PID：当前进程编号
+        PPID：当前进程编号的父进程编号
+
+    ps -ef | grep [nam] 查询关键字为nam的进程
+    ps -aux  显示包含CPU、MEM使用信息的进程
+    ps -aux --sort pcpu
+    top 按资源使用率排序显示进程
+
+    kill -9 [NUM] 杀死PID为NUM的进程
+    [command] & 后台执行command命令
+    jobs 查看当前终端放入后台的进程
+    fg [num] 将编号num的任务转为前台运行
+    bg [num] 将编号num的任务转为后台运行
+    
+脚本编程
+    sh:sh bash
+    csh:c tc 
+    vi [NAME].sh :脚本创建
+    
+    脚本语法
+        #!/bin/sh 脚本声明
+        echo hello 显示hello
+    
+    脚本执行
+        执行方法1：
+            chmod u+x [NAME].sh 改变脚本的权限，赋予执行权限
+            ./[].sh
+        执行方法2：
+            sh [].sh 无需修改权限
+        执行方法3：
+            source [].sh
+        
+        区别：第一、二种会新开一个bash，不同bash中的变量无法共享
+            第三种是在同一个shell里面执行的，可以共享变量
+        export :将当前变量传递给子进程
+
+tar -zcf /sdcard/termux-backup.tar.gz -C /data/data/com.termux/files ./home ./usr
+    

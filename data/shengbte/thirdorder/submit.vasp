@@ -1,0 +1,22 @@
+#!/bin/bash
+#SBATCH -n 52
+#SBATCH -N 1
+#SBATCH -o output
+module load vasp
+
+
+#job submission
+
+for ((i=1;i<=9;i++))
+do
+  cd DISP.POSCAR.00$i
+  mpirun vasp_std >vasp.out 2>vasp.err 
+cd ..
+done 
+
+for ((i=10;i<=56;i++))
+do
+  cd DISP.POSCAR.0$i
+  mpirun vasp_std >vasp.out 2>vasp.err 
+cd ..
+done 

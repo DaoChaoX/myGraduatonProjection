@@ -1,0 +1,148 @@
+此系统有图形界面，有常见图形化软件
+没有盘的概念，其文件路径是一个树状图的结构、
+home下是用户目录但超级用户的目录是root
+
+目录切换与查看
+    ls  目录查看 ls /home 
+    ls-l 以详细模式查看
+    cd  目录切换 
+    pwd 显示当前工作目录print working director
+    几个特殊的目录
+        ~当前用户的主目录
+        .当前目录
+        ..上一级目录
+目录创建与删除
+    mkdir 创建目录 
+    mkdir -p abc/123/text 将多层次目录一次性全部创建
+    rmdir 删除目录 
+    rmdir -rf 删除目录及其子目录 r表示recursive递归 f表示force强制
+复制命令
+    cp -rf [nam] [nam1] 复制nam及其子项为nam1或到nam1下面
+文件改名与移动
+    mv [nam] [nam1] 重命名nam为nam1 
+    mv [nam] ./[director] 剪切当前目录的nam文件到当前目录的director
+归档压缩tar即tape archive
+    归档 
+        tar -cvf [nam1].tar name 把name文件归档为nam1.tar归档包 c表示create v表示verbose显示详情 f表示file
+        tar -cvf [name].tar nam1 nam2 nam3 把nam1-3全部归档为name.tar
+    恢复
+        tar -xvf example.tar 解归档
+        tar -xvf example.tar -C outdir 指定解归档到outdir
+    压缩
+        tar -czvf example.tar.gz name 归档并压缩
+    解压缩
+        tar -xzvf example.tar.gz 解压缩
+        tar -xzvf example.tar.gz -C outdir 解压缩到指定目录
+快捷方式
+    ln -s [NAME] [NAME1] 创建一个名为NAME1的NAME的快捷方式，因原文件的删除而失效
+    ln [NAME] [NAME1] 创建一个名为NAME1的NAME的地址映射，其存在不因原文件的删除而删除，且编辑该文件以达到编辑原文件的目的。
+
+用户管理
+    用户添加
+        sudo useradd -m [nam] 创建登录名为nam的用户
+            sudo表示以管理员身份执行
+    修改用户密码
+        sudo passwd [nam] 修改nam用户的密码
+    删除用户 
+        sudo userdel [nam] 删除nam用户
+    特殊用户类型
+        sudoer指在Linux下可以执行sudo命令的特殊用户
+    超级用户 
+        设置密码
+            sudo passwd root
+        切换到root    
+            su root su表示switch user 
+        退出
+            exit
+组的管理
+    创建组
+        groupadd [nam]
+    创建用户 
+        useradd -m -g [group] [nam]
+    修改现有用户到新的组
+        usermod -g [newgroup] [nam]
+    查看组
+        cat /etc/group 
+    查看用户列表 
+        cat /etc/passwd
+文件权限修改
+    chmod o+w [file] 修改file文件其他用户有写的权限
+    chmod a+w [file] 所有人添加w的权限
+    chmod a-w [file] 所有人删除w的权限
+    chmod u-w [file] 用户自己删除w的权限
+    chmod -w [file] 用户自己删除w的权限
+可执行脚本
+    shell.sh perl.pl python.py
+    shell脚本解释器：/bin/sh
+    perl脚本解释器：/bin/perl
+    python脚本解释器：/bin/python
+    脚本执行
+        ./hello.py
+        ./hello.sh
+        /bin/python3 hello.py
+        /bin/sh hello.sh
+    
+    shell脚本
+        hello.sh
+            
+            #!/bin/sh
+            echo "hello, world"
+    
+    python脚本
+        hello.py
+
+            #!/bin/python3
+            print("hello, world!")
+
+    要点：
+        1、第一行必须声明解释器
+            #!/bin/
+        2、必须有x权限，才能执行
+            chmod +x [program]
+        3、执行程序时必须加上路径
+            ./[program].sh
+            ./[program].py
+        
+shell中的变量
+    此处就是指环境变量
+    SHELL是脚本编程语言
+        1、定义变量
+        2、执行命令echo ls cd cp
+        3、if 判断逻辑， while循环逻辑
+        4、自定义函数
+    不建议学习shell，建议学习python
+
+    eg:
+        #!bin/sh
+
+        #除了开头的，以#开头的都是注释
+        #定义变量，等号两侧不要加空格
+        OUTDIR=/opt
+
+        #use it 
+        echo "output to : ${OUTDIR}"
+        ls ${OUTDIR}
+
+    有了定界符后可以不用{}
+        eg: $OUTDIR/buid/
+
+环境变量：存在于当前环境中的变量
+    定义环境变量
+        export [OUTDIR]=[/opt/]
+    显示环境变量
+        echo $[OUTDIR]    
+    查看所有环境变量
+        printenv
+    环境变量的使用
+        在终端和脚本都可以使用和调用的变量
+        局限于当前打开使用的终端
+
+    用户环境变量
+        定义在~/.profile中(CentOS是定义在.bash_profile中)
+        ls -la 显示所有文件
+        编辑
+            vi ~/.profile
+        添加
+            export JAVA_HOME=/opt/jdk1.8
+    系统环境变量
+        

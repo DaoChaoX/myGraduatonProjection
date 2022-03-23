@@ -1,0 +1,14 @@
+#!/bin/bash
+#SBATCH -N 1     #how many nodes
+#SBATCH -n 1    #number of cores
+#SBATH -o output
+
+#module load vasp 
+module load ShengBTE/1.0.2
+echo "start `date`" >> SUMMARY
+ulimit -n 10240
+ulimit -s unlimited
+
+mpirun -n 1 ShengBTE 2>BTE.err >BTE.out
+
+echo "end  `date`" >> SUMMARY
