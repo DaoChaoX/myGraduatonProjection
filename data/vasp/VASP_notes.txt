@@ -102,7 +102,7 @@ DFPT计算声子谱
         纵坐标单位是THz 1THz=33.33cm^-1，高对称点的横坐标在band.dat文件的第三行里
     退出phonony1.13环境，切换回原来的环境
         conda info -e 查看系统中已经安装的环境
-        conda activate [name] 切换到name环境下，name为原来的环境
+        conda activate [name] 切换到name环境下，name为原来的环境eg.pymatgen
 
 -----------------------------------------------------------------------------------------------
 POSCAR文件

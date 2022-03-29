@@ -1,0 +1,94 @@
+结构优化的基本概念https://mp.weixin.qq.com/s/m9sNZlbBzjJz9Liw5-5xKA
+    弛豫：在本文里即为结构优化的意思。
+    电子步：自洽迭代时一次迭代称作一个电子步。
+    离子步：一次自洽计算称作一个离子步。自洽计算通常需要进行多步迭代，即一个离子步包含多个电子步。
+    分步优化：在结构优化时，可以先使用较低精度的参数组合，快速获得一个较为合理的结构；然后再使用更高精度的参数组合进一步优化，直至获得合理的结构。这里的分步即是多次结构优化计算。
+    k-spacing：在倒空间中在 ka，kb，kc 三个倒格矢上相邻 k 点的距离，由 KPOINTS 文件控制。
+    结构优化的过程：VASP 会对当前结构进行自洽迭代获得该结构的电荷密度，计算该结构的能量和原子受力，然后判断是否达到结构优化收敛判据。若没达到，则生成新结构，使用新结构进行自洽计算 … 如此往复，直至达到收敛判据或者达到设定的最大离子步数 (NSW 控制)，计算退出。如何判断弛豫是否完成见下文 “结构优化需要收集的信息” 。
+
+常用结构优化的INCAR文件及其各个参数的意义：
+    INCAR文件：    
+        SYSTEM=optimize 1 2.1
+    
+        #Start Parameters
+        PREC=Accurate#y
+        ISTART=0#y
+        ICHARG=2#y
+        ISPIN=1#y
+
+        #Electronic relaxation
+        NELM=60;
+        NELMIN=4;
+        NELMDL=-3
+        EDIFF=1E-6#y
+        ENCUT=380
+
+        #IALGO=38#y
+        ADDGRID =.TURE.#y
+        LREAL=.F.#y
+        LCHARG=.FALSE.#y
+        LWAVE=.FALSE.#y
+
+        #Ionic relaxation
+        NSW=520#y
+        IBRION=2#y
+        EDIFFG=-1E-4#y
+        ISIF=2
+
+        NPAR=4
+
+        ISMEAR=0;#y
+        SIGMA=0.1#
+
+    参数意义：
+        SYSTEM：文件的注释，可以任意填写
+        
+        #Start Parameters：注释，表示开始参数
+        PREC：一般建议使用Accurate
+        ISTART：一般选0     0代表重新生成波函数，1代表从WAVECAR读取参数并根据新的shape和ENCUT设置平面波基组，2代表从WAVECAR读取波函数，3代表在2的基础上从TMPCAR读取前两部离子位置和波函数并继续。
+        ICHARG：一般选2     0-从初始波函数计算 1-从CHGCAR读取并插值到新的坐标 2-原子电荷密度叠加 11-电荷密度在非自洽计算中不改变，从CHGCAR 中读取并获得特征值和DOS  12-原子电荷密度叠加的非自洽计算，用于Harris-Foulkes 泛函
+        ISPIN：用于确定是否计算电子的自旋       1-自旋关闭 2-自旋开启
+
+        #Electronic relaxation：注释，电子弛豫部分参数
+        NELM：电子自洽步数上限， default=60
+        NELMIN：电子自洽的最少步数 default=2
+        NELMDL：初始非自洽步数——初始波函数离收敛值很远，需要经过多步非自洽计算之后，再开始更新电荷密度和哈密顿量。取正值为每一步离子驰豫后均进行非自洽计算，取负值意味着只在开始计算时进行非自洽。
+        EDIFF：电子自洽循环的终止条件，结束循环时体系能量与前一步的差值。 default=10^-4
+        ENCUT：平面波基组能量最大值，默认从POTCAR 中选择最大的原子，对于不同的k点，有着不同的平面波基组个数。
+
+        #IALGO=38#y
+        ADDGRID：是否添加网格以增加计算精度
+        LREAL=.F.#y
+        LCHARG=.FALSE.#y
+        LWAVE=.FALSE.#y
+
+        #Ionic relaxation
+        NSW：离子驰豫的最大步数 default=0
+        IBRION：决定离子的移动和更新方式 -1-不移动离子，但NSW外循环仍然进行  0-标准分子动力学  1-准牛顿方法RMM-DIIS 在接近最小值点处收敛快，此方法需要确定即将收敛时使用，对结构收敛程度要求较高，  2-CG法，梯度共轭法，稳妥的方法  
+        EDIFFG：离子驰豫的终止条件，取正值为能量收敛阈值，default=10*EDIFF，取负值为原子力收敛阈值
+        ISIF=2：在产生新结构时，决定晶胞和原子如何变化，
+            ISIF=2：保持晶格常数不变，仅弛豫原子。施加双轴应变进行结构优化，或者弛豫零维体系时，就需要使用 ISIF=2。一些复杂体系弛豫时，为了加快结构优化，第一步粗优化也可以考虑使用 ISIF=2 弛豫后，再在后面的精优化中使用 ISIF=3。
+            ISIF=3：在弛豫原子时，也弛豫晶格。在弛豫晶格时，可以通过修改 VASP 源代码 constr_cell_relax.F 文件，实现一些 VASP 手册中没有提到的结构优化方式，比如固定某个晶格的优化，具体讨论见下文。
+            在计算二维材料时，在设置了足够大的真空层后，个人喜欢使用 ISIF=3，并在优化时固定住 c 方向晶格 (真空层位于 c 方向)。
+
+        POTIM
+            POTIM，(简单理解为) 在产生新结构时，控制原子移动的距离。VASP 会根据原子上的受力以及 POTIM 计算原子移动的距离。POTIM 越大，原子移动的距离越大。
+            1）在作分步优化时，对于极度不合理的结构，第一步粗优化个人有时会考虑设置增大 POTIM 值 (如 POTIM=0.2)，加快原子移动到较合理的位置。
+            2）若结构经多次弛豫依然无法收敛，此时结构可能离合理结构非常接近，但一直在势能极小值点附近振荡，此时将 POTIM 值调小，使用 IBRION=1 会有助于结构的收敛。
+
+        NPAR=4
+
+        ISMEAR=0;#y
+        SIGMA=0.1#
+    
+    
+    
+    有网友在论坛中提到二维结构优化中ISIF不能为3只能为2,这一点高老师也曾讲过.
+
+
+    优化步骤：
+        准备INCAR，POSCAR，vasp.sub，KPOINTS文件
+        对POSCAR进行对称性操作，使其最好为P1对称性
+        从POSCAR生成POTCAR
+        编辑INCAR，KPOINTS
+        提交任务计算
