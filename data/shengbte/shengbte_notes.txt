@@ -1,19 +1,22 @@
 shegnbte是用来计算热导率的一款软件，其运行需要POSCAR文件
 第一步：准备POSCAR，INCAR，KPOINTS，POTCAR，vasp.sub文件
+        一般而言，在这里所准备的文件应该与计算二阶力常数和声子谱时所用的文件完全一样。
 第二步：运行以下命令
     module load thirdorder
           第一次输入可能会报错,需要再输入一次才会正常运行
 第三步：运行以下命令
     thirdorder_vasp.py sow|reap na nb nc cutoff[nm/-integer]
         eg:thirdorder_vasp.py sow 2 2 1 0.35
+        PS：一般扩胞时其大小应该小于或等于计算声子谱时的扩胞倍数。
         参数解释：
             第一个参数必须是"sow"或"reap"，并选择要执行的操作（位移生成或 IFC 矩阵重建）。
             接下来的三个必须是正整数，并指定要创建的超级单元的维度。
             最后，"截止"参数决定了力的截止距离。间隔超过此参数的原子之间的相互作用被忽略。
             如果截止值是正实数，则将其解释为以 nm 为单位的距离;
-            另一方面，如果它是负整数 -n，则会自动确定超级单元中第 n 个相邻邻域之间的最大距离，并相应地设置截止距离。
-    成功后运行以下命令:
-        thirdorder_vasp.py sow 2 2 1 -4
+            
+            PS:另一方面，如果它是负整数 -n，则会自动确定超级单元中第 n 个相邻邻域之间的最大距离，并相应地设置截止距离。
+        或者可以运行以下命令:
+            thirdorder_vasp.py sow 2 2 1 -4
     准备group.bash脚本：
         #!/bin/bash
 
