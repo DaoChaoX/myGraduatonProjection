@@ -85,9 +85,11 @@
     
     有网友在论坛中提到二维结构优化中ISIF不能为3只能为2,这一点高老师也曾讲过.
 
+    PS:VASP结构优化的过程：首先得到材料的原有结构矩阵A，然后通过计算得到力优化矩阵B，则新的结构矩阵A*=A*B
+        在二维材料优化中，为了固定X和Y方向的晶轴的方向及Z轴方向的真空层厚度，需要在每个优化步骤得到A*后在给其乘以矫正矩阵，消除其他方向的参数。
 
     优化步骤：
-        准备INCAR，POSCAR，vasp.sub，KPOINTS文件
+        准备INCAR，POSCAR，vasp.sub，KPOINTS，OPTCELL文件
         对POSCAR进行对称性操作，使其最好为P1对称性
         从POSCAR生成POTCAR
         编辑INCAR，KPOINTS
