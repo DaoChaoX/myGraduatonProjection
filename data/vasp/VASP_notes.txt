@@ -30,11 +30,15 @@ DFPT计算声子谱
             602
             将POSCAR改名为POSCAR-vaspkit
             将PRIMCELL.vasp改名为POSCAR
-            
+    分析对称性  
+        vaspkit 601      
     利用vaspkit生成POTCAR
         vaspkit
         103
     自己建立KPOINTS文件
+    计算前检查
+        grep TIT POTCAR
+        
     建立初始结构POSCAR
         phonopy -d --dim="m n l" ：生产m*n*l的超胞
     将phonopy创建的SPOSCAR复制到POSCAR中，运行VASP进行DFPT计算
@@ -102,7 +106,7 @@ DFPT计算声子谱
         纵坐标单位是THz 1THz=33.33cm^-1，高对称点的横坐标在band.dat文件的第三行里
     退出phonony1.13环境，切换回原来的环境
         conda info -e 查看系统中已经安装的环境
-        conda activate [name] 切换到name环境下，name为原来的环境
+        conda activate [name] 切换到name环境下，name为原来的环境eg.pymatgen
 
 -----------------------------------------------------------------------------------------------
 POSCAR文件
