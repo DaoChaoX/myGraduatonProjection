@@ -37,24 +37,32 @@ shegnbte是用来计算热导率的一款软件，其运行需要POSCAR文件
         done
     再运行一下命令:
         sbatch group.bash
-    生成文件夹并复制文件后，准备run3rd.sh脚本：
-        #!/bin/sh
-        #root_path='pwd'
+    生成文件夹并复制文件后，准备calgroup.sub脚本：
+            #!/bin/bash
+            #SBATCH -n 52
+            #SBATCH -N 1
+            #SBATCH -o output
+            module load vasp
 
-        #在每个文件夹里进行静态计算。
-        for i in {001..060} #按顺序从001到116做静态vasp计算,根据生成的文件夹设定
-        do
-        cd DISP.POSCAR.$i
-        sbatch vasp.sub
-        wait
-        cd ..
-        done
 
-        #上述静态计算完成后提取三阶力常数文件
-        #cd ${root_path}
-        
+            #job submission
+
+            for ((i=1;i<=9;i++))
+            do
+            cd DISP.POSCAR.00$i
+            mpirun vasp_std >vasp.out 2>vasp.err 
+            cd ..
+            done 
+
+            for ((i=10;i<=56;i++))
+            do
+            cd DISP.POSCAR.0$i
+            mpirun vasp_std >vasp.out 2>vasp.err 
+            cd ..
+            done 
+
     再运行以下命令：
-        sbatch run3rd.sh
+        sbatch calgroup.sub
 
     等待计算完成后（约3-6小时），运行以下命令：
         find DISP.POSCAR.* -name vasprun.xml|sort -n| thirdorder_vasp.py reap 2 2 1 -4
