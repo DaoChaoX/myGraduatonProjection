@@ -69,7 +69,7 @@ shegnbte是用来计算热导率的一款软件，其运行需要POSCAR文件
     之后会得到FORCE_CONSTANTS_3RD 文件
 
     准备二阶力常数文件
-        将用静态计算法或DFT法计算得到的二阶力常数文件FORCE_CONSTANTS改名为FORCE_CONSTANTS_2ND，
+        将用静态计算法或DFT法计算得到的二ls阶力常数文件FORCE_CONSTANTS改名为FORCE_CONSTANTS_2ND，
         注意两个尾缀不同
 
     准备文件POSCAR和CONTROL
