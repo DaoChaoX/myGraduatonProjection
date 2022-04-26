@@ -94,3 +94,5 @@
         从POSCAR生成POTCAR
         编辑INCAR，KPOINTS
         提交任务计算
+        在OUTCAR文件中查找required字样
+            grep required OUTCAR
