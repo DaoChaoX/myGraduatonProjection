@@ -31,8 +31,9 @@ Linux的分支
     ll 列出当前目录文件
     ll -a 纵向列出当前目录文件的隐藏
     ls 横向显示当前目录文件名
+    tree -L [N] 以树状结构显示当前目录下得文件结构到第N层
+        https://blog.csdn.net/xuehuafeiwu123/article/details/53817161
     ps -ef 查看当前进程
-
     squeue 查看集群上的作业任务
     squeue -u 'jiale' 查看集群上名为jiale的用户的作业任务
     qstat 查看过去几小时内已经结束及现在正在运行的作业任务
@@ -53,6 +54,7 @@ Linux的分支
 
     conda info -e 查看系统中已经安装的环境
     conda activate [name] 切换到name环境下
+    module load anaconda3 将anaconda2切换成anaconda3，在环境只有base时候可以切换
 
     module help 显示帮助信息
     module avail 显示已经安装的软件环境

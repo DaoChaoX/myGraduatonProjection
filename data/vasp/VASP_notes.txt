@@ -32,6 +32,7 @@ DFPT计算声子谱
             将PRIMCELL.vasp改名为POSCAR
     分析对称性  
         vaspkit 601      
+        或phonopy --symmetry
     利用vaspkit生成POTCAR
         vaspkit
         103
