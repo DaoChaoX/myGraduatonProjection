@@ -96,3 +96,4 @@
         提交任务计算
         在OUTCAR文件中查找required字样
             grep required OUTCAR
+            或者用vim打开这个文件，用vim里面的搜索功能来搜索这个字眼
