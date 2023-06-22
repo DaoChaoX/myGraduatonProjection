@@ -4,7 +4,7 @@ Linux的分支
     debian:Ubuntu 带有视窗界面的民用版本 完全免费
 
 
-本教程主要以redhat的CentOS
+本教程主要以redhat的CentOS为例：
 
 基本常用
     命令必须和参数用空格隔开，命令会区分大小写
